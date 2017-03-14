@@ -34,6 +34,9 @@ sd(dados$qi)
 mean(dados$qi)
 
 # Rodando a regressao com desvio padrao de qi
+dados$qi_sd = dados$qi/sd(dados$qi)
 
-
+reg_loglinsd = lm(lsal ~ educ + exper + I(exper**2) + qi_sd + perm + casado +
+                    negro + sul + urban, data=dados)
+summary(reg_loglinsd)
 
