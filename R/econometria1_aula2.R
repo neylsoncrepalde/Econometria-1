@@ -51,29 +51,30 @@ summary(reg_linlin_pormil)
 
 ###################################
 library(MASS)
-X = dados[,-1] %>% as.matrix
-Y = dados[,1] %>% as.matrix
-b = solve(t(X) %*% X) %*% t(X)%*%Y
-
-mat = model.matrix(Y ~ X)
+mat = model.matrix(salario ~ . -salario, data=dados)
 View(mat)
+X = mat[,1:17]
 Y = mat[,18]
-X = mat[,2:17]
-
 b = solve(t(X) %*% X) %*% t(X)%*%Y
+
+
 #######################################
 #Calculando Soma dos quadrados dos residuos
 e = Y - X%*%b
 sigma2 = (t(e)%*%e) / 925
-sigma2 %<>% as.matrix
 
-vcb = sigma2 %*% solve(t(X) %*% X)
+invertida = solve(t(X) %*% X)
+
+vcb = sigma2 %*% invertida # deu ruim
+
+sum(residuals(reg_loglin)^2) # Achei o SQR
 
 ##Continuar ######################
-summary(lm(emprestimos ~ roubos, data=espuria))
-
 espuria = read.dta('espuria.dta')
 names(espuria)
+
+reg_espuria = lm(emprestimos ~ roubos, data=espuria)
+
 
 mat = model.matrix(espuria$emprestimos ~ espuria$roubos)
 View(mat)
@@ -85,6 +86,7 @@ b = solve(t(X) %*% X) %*% t(X)%*%Y
 e = Y-X%*%b
 
 xe = t(X)%*%e
+
 
 mean(espuria$emprestimos)
 yhat = predict(lm(emprestimos ~ roubos, data=espuria)); mean(yhat)
