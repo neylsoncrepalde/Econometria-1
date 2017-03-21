@@ -9,6 +9,7 @@
 setwd('~/Documentos/Neylson Crepalde/Doutorado/Econometria1/AULAS 2017')
 
 library(foreign)
+library(magrittr)
 dados = read.dta('wages_935.dta') #Funcionando
 
 dados$lsal = log(dados$salario) # Gerando log de salario
@@ -40,3 +41,50 @@ reg_loglinsd = lm(lsal ~ educ + exper + I(exper**2) + qi_sd + perm + casado +
                     negro + sul + urban, data=dados)
 summary(reg_loglinsd)
 
+################################
+# regressao com salario/1000
+
+reg_linlin_pormil = lm(I(salario/1000) ~ educ + exper + I(exper**2) + qi + perm + casado +
+                  negro + sul + urban, data=dados)
+summary(reg_linlin_pormil)
+
+
+###################################
+library(MASS)
+X = dados[,-1] %>% as.matrix
+Y = dados[,1] %>% as.matrix
+b = solve(t(X) %*% X) %*% t(X)%*%Y
+
+mat = model.matrix(Y ~ X)
+View(mat)
+Y = mat[,18]
+X = mat[,2:17]
+
+b = solve(t(X) %*% X) %*% t(X)%*%Y
+#######################################
+#Calculando Soma dos quadrados dos residuos
+e = Y - X%*%b
+sigma2 = (t(e)%*%e) / 925
+sigma2 %<>% as.matrix
+
+vcb = sigma2 %*% solve(t(X) %*% X)
+
+##Continuar ######################
+summary(lm(emprestimos ~ roubos, data=espuria))
+
+espuria = read.dta('espuria.dta')
+names(espuria)
+
+mat = model.matrix(espuria$emprestimos ~ espuria$roubos)
+View(mat)
+X = mat %>% as.matrix
+Y = espuria$emprestimos
+
+b = solve(t(X) %*% X) %*% t(X)%*%Y
+
+e = Y-X%*%b
+
+xe = t(X)%*%e
+
+mean(espuria$emprestimos)
+yhat = predict(lm(emprestimos ~ roubos, data=espuria)); mean(yhat)
