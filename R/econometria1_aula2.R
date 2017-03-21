@@ -65,7 +65,7 @@ sigma2 = (t(e)%*%e) / 925
 
 invertida = solve(t(X) %*% X)
 
-vcb = sigma2 %*% invertida # deu ruim
+vcb = numeric(sigma2) * invertida # deu ruim
 
 sum(residuals(reg_loglin)^2) # Achei o SQR
 
@@ -74,11 +74,11 @@ espuria = read.dta('espuria.dta')
 names(espuria)
 
 reg_espuria = lm(emprestimos ~ roubos, data=espuria)
-
+summary(reg_espuria)
 
 mat = model.matrix(espuria$emprestimos ~ espuria$roubos)
 View(mat)
-X = mat %>% as.matrix
+X = cbind(1,espuria$roubos)
 Y = espuria$emprestimos
 
 b = solve(t(X) %*% X) %*% t(X)%*%Y
@@ -86,7 +86,13 @@ b = solve(t(X) %*% X) %*% t(X)%*%Y
 e = Y-X%*%b
 
 xe = t(X)%*%e
+sigma2 = t(e)%*%e/70
+
+vcov(reg_espuria)
+
+vcb <- as.numeric(sigma2) * solve(t(X)%*%X)
 
 
+# curiosidade: a media do vetor é igual à media do y chapeu - algebra
 mean(espuria$emprestimos)
 yhat = predict(lm(emprestimos ~ roubos, data=espuria)); mean(yhat)
