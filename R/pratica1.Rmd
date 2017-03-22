@@ -1,0 +1,93 @@
+---
+title: "Econometria 1 - Prática 1"
+author: "Neylson Crepalde"
+output: html_notebook
+---
+
+Trabalhando com a base de dados `wages_935.dta`:
+
+```{r linlin}
+library(foreign)
+library(magrittr)
+library(MASS)
+
+
+dados = read.dta('~/Documentos/Neylson Crepalde/Doutorado/Econometria1/AULAS 2017/wages_935.dta')
+
+dados$lsal = log(dados$salario) # Gerando log de salário
+dados$exper2 = dados$exper**2   # Gerando experiência ao quadrado
+
+reg_linlin = lm(salario ~ educ + exper + I(exper**2) + qi + perm + casado +
+                  negro + sul + urban, data=dados)
+summary(reg_linlin) #Interpretação em variação na unidade (dólares)
+
+reg_loglin = lm(lsal ~ educ + exper + I(exper**2) + qi + perm + casado +
+           negro + sul + urban, data=dados)
+summary(reg_loglin) #Interpretação: percentual do salário
+```
+
+**1) Interprete os valores estimados para cada $b_{k}$ nos dois modelos para a variável educação e calcule o efeito de mudanças na variável experiência sobre o salário do indivíduo.**
+
+No primeiro modelo os coeficientes podem ser interpretados da seguinte maneira:
+
+Para cada ano a mais de educação...
+
+**2) Indique quando o efeito estimado dos anos de experiência sobre o salário passa a ser negativo (ou seja, calcule o ponto de inflexão).**
+
+```{r inflexao}
+# dsalario/dexper
+20.27 - 2*0.27
+```
+
+
+**3) No modelo lin-lin, divida os valores do salario por 1000 e verifique o que acontece com os resultados do modelo (inclusive com a soma dos quadrados dos resíduos).**
+
+```{r}
+#verificando a SQR do linlin
+sum(residuals(reg_linlin)^2)
+
+reg_linlin_pormil = lm(I(salario/1000) ~ educ + exper + I(exper**2) + qi + perm + casado + negro + sul + urban, data=dados)
+summary(reg_linlin_pormil)
+sum(residuals(reg_linlin_pormil)^2)
+```
+
+Resposta da questão 3...
+
+**4) No modelo lin-lin, divida os valores da variável QI por 10 e verifique o que acontece com os resultados do modelo (inclusive com a soma dos quadrados dos resíduos).**
+
+
+```{r}
+reg_linlin_qi = lm(salario ~ educ + exper + I(exper**2) + I(qi/10) + perm + casado + negro + sul + urban, data=dados)
+summary(reg_linlin_qi)
+sum(residuals(reg_linlin_qi)^2)
+```
+
+Resposta da questão 4...
+
+**5) Calcule o efeito sobre o salário da mudança de um e dois desvios padrões na variável QI e verifique qual é a variável explicativa que tem o maior peso (em valor) na explicação dos salários.**
+
+```{r}
+qisd = sd(dados$qi) #Tirando o desvio padrão
+
+reg_linlin_qisd = lm(salario ~ educ + exper + I(exper**2) + I(qi/qisd) + perm + casado + negro + sul + urban, data=dados)
+summary(reg_linlin_qisd)
+sum(residuals(reg_linlin_qisd)^2)
+```
+
+CONTINUA...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
