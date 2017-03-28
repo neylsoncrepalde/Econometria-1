@@ -1,0 +1,93 @@
+---
+title: "Econometria 1 - Prática 2"
+author: "Neylson Crepalde"
+output: html_notebook
+---
+
+## Exercício 1
+
+```{r setup, message=FALSE, warning=FALSE}
+library(foreign)
+library(magrittr)
+library(lmtest)
+
+setwd('~/Documentos/Neylson Crepalde/Doutorado/Econometria1/aula_pratica2')
+eqsal = read.dta("eqsal3.dta")
+investimento = read.dta("Investimento.dta")
+
+head(eqsal)
+head(investimento)
+```
+
+1) Será que o coeficiente de educação representa o verdadeiro efeito da educação sobre os salários, independente do sexo?
+
+```{r questao1, message=FALSE, warning=FALSE}
+reg1 = lm(lsal~educ+idade+idade2+sexo+raca, data = eqsal)
+summary(reg1)
+
+reg2 = lm(sal~educ+idade+idade2+sexo+raca, data = eqsal)
+summary(reg2)
+
+reg3 = lm(lsal~educ+sexo, data=eqsal)
+summary(reg3)
+
+reg4 = lm(lsal~sexo, data = eqsal)
+summary(reg4)
+
+res_sal_com_educ = residuals(reg4)
+
+reg5 = lm(educ~sexo, data=eqsal)
+summary(reg5)
+
+res_sal_edu_sem_sexo = residuals(reg5)
+
+reg6 = lm(res_sal_com_educ~res_sal_edu_sem_sexo)
+summary(reg6)
+
+# O efeito estimado pela regressão particionada é igual ao efeito de educ no modelo original?
+coef(reg6)[2]; coef(reg3)[2]
+
+```
+
+## Exercício 2
+
+```{r}
+library(ggplot2)
+library(timeSeries)
+
+ggplot(investimento, aes(y=inv_real, x=ano))+geom_line()
+ggplot(investimento, aes(y=pnb_real, x=ano))+geom_line()
+
+# colocar os gráficos com tendência
+
+inv_real = ts(investimento$inv_real, start=1980, end = 1994)
+pnb_real = ts(investimento$pnb_real, start=1980, end = 1994)
+
+plot.ts(inv_real)
+plot.ts(pnb_real)
+
+tend_inv = decompose(inv_real)  # corrigir
+?decompose
+
+
+```
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
