@@ -77,7 +77,29 @@ sum(residuals(reg_linlin_qisd)^2)
 CONTINUA...
 
 
+6) Fazer uma estimação MQO do modelo log-lin na forma matricial, inclusive a matriz de variâncias e covariâncias dos resíduos e compare com os resultados do Stata.
 
+```{r matricial, message=F, warning=F}
+mat = model.matrix(salario ~ . -salario, data=dados)
+mat[1:10,]
+X = mat[,1:17]
+Y = mat[,18]
+b = solve(t(X) %*% X) %*% t(X)%*%Y
+
+print(b)
+
+#Calculando Soma dos quadrados dos residuos
+e = Y - X%*%b
+sigma2 = (t(e)%*%e) / 925
+
+
+invertida = solve(t(X) %*% X)
+
+vcb = rep(sigma2, nrow(invertida)) %*% invertida
+vcov(reg_loglin)
+
+sum(residuals(reg_loglin)^2) # Achei o SQR
+```
 
 
 
