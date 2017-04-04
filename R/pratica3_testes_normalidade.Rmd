@@ -2,14 +2,16 @@
 title: "Econometria 1 - Prática 3"
 author: "Neylson Crepalde"
 output:
-  pdf_document: default
   html_notebook: default
+  pdf_document: default
+editor_options: 
+  chunk_output_type: inline
 ---
 
-```{r setup, warning=FALSE, message=FALSE}
+```{r setup, include=F}
 library(foreign)
 library(magrittr)
-library(lmtest)
+library(normtest)
 
 setwd('~/Documentos/Neylson Crepalde/Doutorado/Econometria1/aula_pratica2')
 
@@ -29,9 +31,15 @@ x3 = rnorm(1084)
 x12 = x1^2
 x22 = x2^2
 x32 = x3^2
+```
 
-# testar normalidade com Jarque-Bera...
+c) Faça testes de normalidade nessas variáveis e nas variáveis de salário (salario e lsalario).
 
+```{r testesnorm, message=FALSE, warning=FALSE}
+# Jarque-Bera
+sapply(list(x1,x2,x3,x12,x22,x32,grandes$salario, grandes$lsalario), jb.norm.test)
+
+# Testes de Shapiro Wilk
 sapply(list(x1,x2,x3,x12,x22,x32,grandes$salario, grandes$lsalario), shapiro.test)
 
 qqnorm(x1)
