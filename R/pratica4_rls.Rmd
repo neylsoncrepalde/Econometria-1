@@ -7,8 +7,109 @@ editor_options:
 ---
 
 ```{r setup, include=F}
+setwd('~/Documentos/Neylson Crepalde/Doutorado/Econometria1/aula_pratica3')
 library(lrmest)
-help(rls)
+library(foreign)
+library(timeSeries)
+library(magrittr)
+
+investimento = read.dta("Investimento.dta")
+emprego = read.dta("Emprego.dta")
+investimento$ano %<>% as.ts
+investimento$tend <- seq_along(investimento$ano)
+
+names(investimento)
+```
+
+```{r calculos, message=FALSE, warning=FALSE}
+X = model.matrix(inv_real~0+const+tend+pnb_real+tx_juros+tx_infla, data = investimento)
+r = matrix(data = c(0,0,0,1,1), nrow = 1)
+Y = investimento$inv_real %>% as.matrix
+
+b = solve(t(X)%*%X) %*% (t(X)%*%Y)
+
+s2 = (t(Y - X%*%b) %*% (Y - X%*%b)) / 10
+
+s2 %<>% as.matrix
+
+var = r %*% (s2 %*% solve(t(X)%*%X)) * t(r) #Deu ruim
+#r*(s2*inv(x'*x))*r'  escrito no Stata
+
+sqrt(1.805e-06)
+sqrt(0.0000018052)
+
+rb = r%*%b
+rb
+
+-.00243313/.0013435
+
+# Verificando
+reg = lm(inv_real~tend+pnb_real+tx_juros+tx_infla, data=investimento)
+vcov(reg)
+
+# ESTUDAR!!!!!!!!!!!
+```
+
+## Exercício 2
+### Dados em Emprego
+
+**Modelo:** emprego total, agrícola , não a*grícola =f(PNB, deflator do PNB, tamanho das forças armadas).
+
+Queremos saber se a relação entre o emprego (total, agrícola e não agrícola) e as outras variáveis apresentou mudanças após a guerra da Coréia, que terminou em 1953.
+
+Estabeleça e teste as seguintes restrições: Teste de Chow.
+		
+a) Todos os coeficientes são os mesmos nos dois períodos para o emprego total;
+
+```{r questao2a, message=FALSE, warning=FALSE}
+library(strucchange)
+View(emprego)
+emprego$ano %<>% as.ts
+emprego$cons = 1
+
+r = matrix(data=c(1,0,0,0,0,-1,0,0,0,0,0,1,0,0,0,0,-1,0,0,0,0,0,1,0,0,0,0,-1,0,0,0,0,0,1,0,0,0,0,-1,0,0,0,0,0,1,0,0,0,0,-1), nrow = 5, byrow = T)
+r
+
+# Programar os x1_1 x1_2 com for loop...
+
+banco1 = emprego[emprego$ano<=1953,]
+banco2 = emprego[emprego$ano>1953,]
+zeros = matrix(0, ncol=9, nrow=9) %>% as.data.frame
+names(zeros) = names(emprego)
+banco1 = rbind(banco1, zeros)
+
+dim(banco1)
+
+banco2 = rbind(zeros[1:7,], banco2)
+
+dim(emprego)
+
+dim(banco1)
+dim(banco2)
+banco = cbind(banco1, banco2)
+
+Y = emprego$emp_tot
+
+X = model.matrix(emp_tot~0+) #... Continua no próximo episódio...
+
+
 
 ```
+
+b) As inclinações são as mesmas e os interceptos são diferentes para EA e ENA;
+
+```{r}
+
+```
+
+
+
+
+
+
+
+
+
+
+
 
