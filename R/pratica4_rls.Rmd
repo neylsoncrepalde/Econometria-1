@@ -1,0 +1,14 @@
+---
+title: "Prática 4 - Restricted Least Squares"
+author: "Neylson Crepalde"
+output: html_notebook
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r setup, include=F}
+library(lrmest)
+help(rls)
+
+```
+
