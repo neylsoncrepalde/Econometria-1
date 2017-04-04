@@ -90,7 +90,7 @@ banco = cbind(banco1, banco2)
 
 Y = emprego$emp_tot
 
-X = model.matrix(emp_tot~0+) #... Continua no próximo episódio...
+#X = model.matrix(emp_tot~0+) #... Continua no próximo episódio...
 
 
 
@@ -98,7 +98,28 @@ X = model.matrix(emp_tot~0+) #... Continua no próximo episódio...
 
 b) As inclinações são as mesmas e os interceptos são diferentes para EA e ENA;
 
-```{r}
+```{r questao2b, message=FALSE, warning=FALSE}
+names(emprego)
+r = matrix(data=c(0,1,0,0,0,0,-1,0,0,0,0,0,1,0,0,0,0,-1,0,0,0,0,0,1,0,0,0,0,-1,0,0,0,0,0,1,0,0,0,0,-1), nrow = 4, byrow = T)
+r
+
+var_emprego = c(emprego$emp_agri, emprego$emp_nagri)
+emprego2 = rbind(emprego, emprego)
+emprego2 = cbind(emprego2, var_emprego)
+dim(emprego2)
+
+# Banco valendo === emprego2
+
+cons_agri = c(rep(1,16), rep(0,16))
+cons_nagri = c(rep(0,16), rep(1,16))
+
+emprego2 = cbind(emprego2, cons_agri, cons_nagri)
+
+View(emprego2)
+
+# COntinua
+# Talvez seja melhor programar as matrizes de um jeito mais eficiente...
+
 
 ```
 
