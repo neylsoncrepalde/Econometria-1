@@ -2,13 +2,14 @@
 title: "Econometria 1 - Prática 3"
 author: "Neylson Crepalde"
 output:
-  html_notebook: default
+  html_notebook: 
+    highlight: tango
   pdf_document: default
 editor_options: 
   chunk_output_type: inline
 ---
 
-```{r setup, include=F}
+```{r setup}
 library(foreign)
 library(magrittr)
 library(normtest)
@@ -22,8 +23,6 @@ pequenas = read.dta('Teste_normalidade_pequenas_amostras.dta')
 1) Gere 3 variáveis com distribuição normal e 3 variáveis com distribuição $\chi^2$:
 
 ```{r, message=FALSE, warning=FALSE}
-#library(normtest)
-
 x1 = rnorm(1084)
 x2 = rnorm(1084)
 x3 = rnorm(1084)
@@ -41,14 +40,42 @@ sapply(list(x1,x2,x3,x12,x22,x32,grandes$salario, grandes$lsalario), jb.norm.tes
 
 # Testes de Shapiro Wilk
 sapply(list(x1,x2,x3,x12,x22,x32,grandes$salario, grandes$lsalario), shapiro.test)
-
-qqnorm(x1)
-qqnorm(grandes$salario)
-qqnorm(grandes$lsalario)
-qqnorm(x12)
-
-qqnorm(pequenas$salario)
-qqnorm(pequenas$lsalario)
-
 ```
 
+d) Faça gráficos de probabilidade da normal e $\chi^2$ para as variáveis, x1, x12, salário e lsalario uma a uma.
+
+```{r testplots, fig.width=9, fig.height=6}
+# Normal QQ-plots
+par(mfrow=c(2,2))
+qqnorm(x1)
+qqnorm(x12)
+qqnorm(grandes$salario)
+qqnorm(grandes$lsalario)
+
+qqplot(qchisq(ppoints(1084), df = 2), x1, main = expression("Q-Q plot for" ~~ {chi^2}[nu == 2]))
+qqplot(qchisq(ppoints(1084), df = 2), x12, main = expression("Q-Q plot for" ~~ {chi^2}[nu == 2]))
+qqplot(qchisq(ppoints(1084), df = 2), grandes$salario, main = expression("Q-Q plot for" ~~ {chi^2}[nu == 2]))
+qqplot(qchisq(ppoints(1084), df = 2), grandes$lsalario, main = expression("Q-Q plot for" ~~ {chi^2}[nu == 2]))
+par(mfrow=c(1,1))
+```
+
+e) Repita o mesmo procedimento com o arquivo b.
+
+```{r, fig.width=9, fig.height=6}
+# Jarque-Bera
+sapply(list(pequenas$salario, pequenas$lsalario), jb.norm.test)
+
+# Testes de Shapiro Wilk
+sapply(list(pequenas$salario, pequenas$lsalario), shapiro.test)
+
+par(mfrow=c(2,2))
+qqnorm(pequenas$salario)
+qqnorm(pequenas$lsalario)
+qqplot(qchisq(ppoints(1084), df = 2), pequenas$salario, main = expression("Q-Q plot for" ~~ {chi^2}[nu == 2]))
+qqplot(qchisq(ppoints(1084), df = 2), pequenas$lsalario, main = expression("Q-Q plot for" ~~ {chi^2}[nu == 2]))
+par(mfrow=c(1,1))
+```
+
+f) Interprete e discuta os resultados:
+
+O testes de **Jarque-Bera** indicou a variável `salario` como não normal e `lsalario` como normal. Já o teste **Shapiro-Wilk** foi significativo para ambas as variáveis a 5\% indicando que nenhuma das duas variáveis possui distribuição normal.

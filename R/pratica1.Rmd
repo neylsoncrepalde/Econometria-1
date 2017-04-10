@@ -1,7 +1,9 @@
 ---
 title: "Econometria 1 - Prática 1"
 author: "Neylson Crepalde"
-output: html_notebook
+output: 
+  html_notebook:
+    highlight: tango
 ---
 
 Trabalhando com a base de dados `wages_935.dta`:
@@ -30,7 +32,10 @@ summary(reg_loglin) #Interpretação: percentual do salário
 
 No primeiro modelo os coeficientes podem ser interpretados da seguinte maneira:
 
-Para cada ano a mais de educação...
+Para cada ano a mais de educação o salário aumenta, em média, R\$55,65 reais, controlando pelas demais variáveis. Para cada ano a mais de experiência, o salário aumenta, em média, R\$20,27 reais.
+
+No segundo modelo, os mesmos coeficientes podem ser interpretados da seguinte maneira:
+Para cada ano a mis de educação o log do salário aumenta, em média, 0.054, controlando pelas demais variáveis. Para cada ano a mais de experiência, o log do salário aumenta, em média, 0.018.
 
 **2) Indique quando o efeito estimado dos anos de experiência sobre o salário passa a ser negativo (ou seja, calcule o ponto de inflexão).**
 
@@ -51,7 +56,7 @@ summary(reg_linlin_pormil)
 sum(residuals(reg_linlin_pormil)^2)
 ```
 
-Resposta da questão 3...
+Os coeficientes do modelo ficam todos divididos por mil. A soma dos quadrados dos resíduos, por sua vez, fica multiplicada por 1.000.000 ($1000^2$).
 
 **4) No modelo lin-lin, divida os valores da variável QI por 10 e verifique o que acontece com os resultados do modelo (inclusive com a soma dos quadrados dos resíduos).**
 
@@ -62,7 +67,7 @@ summary(reg_linlin_qi)
 sum(residuals(reg_linlin_qi)^2)
 ```
 
-Resposta da questão 4...
+Apenas o coeficiente da variável QI foi multiplicado por 10. O valor da soma dos quadrados dos resíduos, por sua vez, permanece igual.
 
 **5) Calcule o efeito sobre o salário da mudança de um e dois desvios padrões na variável QI e verifique qual é a variável explicativa que tem o maior peso (em valor) na explicação dos salários.**
 
@@ -74,42 +79,109 @@ summary(reg_linlin_qisd)
 sum(residuals(reg_linlin_qisd)^2)
 ```
 
-CONTINUA...
+Um desvio padrão na variável QI acarreta um aumento médio de R\$50.62. Dois desvios padrão acarretam, consequentemente, um aumento de R\$101,24.
 
+Para saber qual é a variável que possui o maior efeito, é preciso padronizar os coeficientes da regressão tornando-os comparáveis.
 
-6) Fazer uma estimação MQO do modelo log-lin na forma matricial, inclusive a matriz de variâncias e covariâncias dos resíduos e compare com os resultados do Stata.
+```{r padronizada, message=FALSE, warning=FALSE}
+dados_norm = lapply(dados, scale)
+reg_linlin_pad <- lm(salario ~ educ + exper + I(exper**2) + qi + perm + casado +
+                  negro + sul + urban, data=dados_norm)
+summary(reg_linlin_pad)
+```
+
+A variável com maior efeito sobre o salário é educação. Um desvio padrão nessa variável acarreta uma mudança médio de 0.3 desvio padrão no salário.
+
+**6) Fazer uma estimação MQO do modelo log-lin na forma matricial, inclusive a matriz de variâncias e covariâncias dos resíduos e compare com os resultados do Stata.**
 
 ```{r matricial, message=F, warning=F}
-mat = model.matrix(salario ~ . -salario, data=dados)
-mat[1:10,]
-X = mat[,1:17]
-Y = mat[,18]
+X = model.matrix(salario ~ educ + exper + I(exper**2) + qi + perm + casado +
+                  negro + sul + urban, data=dados)
+dim(X)
+Y = dados$salario
+length(Y)
+
 b = solve(t(X) %*% X) %*% t(X)%*%Y
 
-print(b)
+#Colocando os betas "na mão" do lado dos betas do comando
+cbind(b, coef(reg_linlin))
 
 #Calculando Soma dos quadrados dos residuos
 e = Y - X%*%b
 sigma2 = (t(e)%*%e) / 925
+print(sigma2)
+
+vcb = drop(sigma2) * solve(t(X) %*% X)
+print(vcb)
+vcov(reg_linlin)
+
+var = diag(vcb)
+print(var)
+```
+
+**7) Comprove os aspectos algébricos no modelo completo e em um modelo excluindo a constante.**
+
+```{r}
+#Testando os aspectos algébricos do modelo
+xe = t(X) %*% e
+print(xe) #Todos iguais a zero!
+
+yhat <- predict(reg_linlin)
+mean(yhat); mean(dados$salario)
 
 
-invertida = solve(t(X) %*% X)
+#MODELO SEM A CONSTANTE
+X = model.matrix(salario ~ 0 + educ + exper + I(exper**2) + qi + perm + casado +
+                  negro + sul + urban, data=dados)
+Y = dados$salario
 
-vcb = rep(sigma2, nrow(invertida)) %*% invertida
-vcov(reg_loglin)
+b = solve(t(X) %*% X) %*% t(X)%*%Y
 
-sum(residuals(reg_loglin)^2) # Achei o SQR
+#Colocando os betas "na mão" do lado dos betas do comando
+reg_semconst = lm(salario ~ 0 + educ + exper + I(exper**2) + qi + perm + casado +
+                  negro + sul + urban, data=dados)
+cbind(b, coef(reg_semconst))
+
+#Calculando Soma dos quadrados dos residuos
+e = Y - X%*%b
+sigma2 = (t(e)%*%e) / 925
+print(sigma2)
+
+vcb = drop(sigma2) * solve(t(X) %*% X)
+print(vcb)
+vcov(reg_semconst)
+
+var = diag(vcb)
+print(var)
+
+#Testando os aspectos algébricos do modelo
+xe = t(X) %*% e
+print(xe) #Todos iguais a zero!
+
+yhat <- predict(reg_semconst)
+mean(yhat); mean(dados$salario)
+
 ```
 
 
+## 8) Com a base de dados espuria.dta, comprove os aspectos algébricos.
 
+```{r}
+esp = read.dta("~/Documentos/Neylson Crepalde/Doutorado/Econometria1/AULAS 2017/espuria.dta")
+X = model.matrix(emprestimos~roubos, data=esp)
+Y = esp$emprestimos
 
+b = solve(t(X) %*% X) %*% t(X)%*%Y
+reg_esp = lm(emprestimos~roubos, data=esp)
+cbind(b, coef(reg_esp))
 
+e = Y - X%*%b
+xe = t(X) %*% e
+print(xe)
 
+mean(esp$emprestimos)
+mean(esp$roubos)
 
-
-
-
-
-
-
+yhat = predict(reg_esp)
+mean(Y); mean(yhat)
+```

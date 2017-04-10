@@ -1,84 +1,205 @@
 ---
 title: "Econometria 1 - Prática 2"
 author: "Neylson Crepalde"
-output: html_notebook
+output:
+  html_notebook:
+    highlight: tango
+  pdf_document:
+    highlight: tango
 ---
 
 ## Exercício 1
 
-```{r setup, message=FALSE, warning=FALSE}
+```{r setup, message=FALSE, warning=FALSE, results='hide'}
 library(foreign)
 library(magrittr)
 library(lmtest)
 
+# Multiple plot function
+#
+# ggplot objects can be passed in ..., or to plotlist (as a list of ggplot objects)
+# - cols:   Number of columns in layout
+# - layout: A matrix specifying the layout. If present, 'cols' is ignored.
+#
+# If the layout is something like matrix(c(1,2,3,3), nrow=2, byrow=TRUE),
+# then plot 1 will go in the upper left, 2 will go in the upper right, and
+# 3 will go all the way across the bottom.
+#
+multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+  library(grid)
+
+  # Make a list from the ... arguments and plotlist
+  plots <- c(list(...), plotlist)
+
+  numPlots = length(plots)
+
+  # If layout is NULL, then use 'cols' to determine layout
+  if (is.null(layout)) {
+    # Make the panel
+    # ncol: Number of columns of plots
+    # nrow: Number of rows needed, calculated from # of cols
+    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                    ncol = cols, nrow = ceiling(numPlots/cols))
+  }
+
+ if (numPlots==1) {
+    print(plots[[1]])
+
+  } else {
+    # Set up the page
+    grid.newpage()
+    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+
+    # Make each plot, in the correct location
+    for (i in 1:numPlots) {
+      # Get the i,j matrix positions of the regions that contain this subplot
+      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+
+      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                      layout.pos.col = matchidx$col))
+    }
+  }
+}
+
 setwd('~/Documentos/Neylson Crepalde/Doutorado/Econometria1/aula_pratica2')
 eqsal = read.dta("eqsal3.dta")
 investimento = read.dta("Investimento.dta")
-
-head(eqsal)
-head(investimento)
 ```
 
-1) Será que o coeficiente de educação representa o verdadeiro efeito da educação sobre os salários, independente do sexo?
+## 1) Será que o coeficiente de educação representa o verdadeiro efeito da educação sobre os salários, independente do sexo?
 
-```{r questao1, message=FALSE, warning=FALSE}
+a) Estime a equação de salários acima e verifique a importância do sexo na determinação dos salários;
+
+```{r questao1a, message=FALSE, warning=FALSE}
 reg1 = lm(lsal~educ+idade+idade2+sexo+raca, data = eqsal)
 summary(reg1)
+cat('Exponencial do beta de sexo:\n');exp(reg1$coefficients[5])
+``` 
 
-reg2 = lm(sal~educ+idade+idade2+sexo+raca, data = eqsal)
-summary(reg2)
+O coeficiente para a variável sexo pode ser interpretado da seguinte maneira:
 
+Homens ganham, em média, 1.77 reais a mais do que mulheres levando em conta todas as outras variáveis incluídas no modelo, a saber, educação, idade e raça/cor. Vamos tirar um boxplot das variáveis para verificar se a estimação faz sentido.
+
+```{r boxplot, warning=FALSE, message=FALSE}
+library(ggplot2)
+ggplot(eqsal, aes(x=factor(sexo), y=sal))+geom_boxplot()+labs(y='Salário',x='Sexo')
+```
+
+b) Agora estime a equação somente com as variáveis educ e sexo.
+
+```{r questao1b, message=FALSE, warning=FALSE}
 reg3 = lm(lsal~educ+sexo, data=eqsal)
 summary(reg3)
+```
 
+c) Agora estime a equação somente com a variável educ e extraia os resíduos
+
+```{r}
 reg4 = lm(lsal~sexo, data = eqsal)
 summary(reg4)
 
 res_sal_com_educ = residuals(reg4)
+```
 
+d) Agora estime uma equação da variável educ sobre sexo e extraia os resíduos
+
+```{r}
 reg5 = lm(educ~sexo, data=eqsal)
 summary(reg5)
 
 res_sal_edu_sem_sexo = residuals(reg5)
+```
 
+e) Agora estime uma equação dos resíduos da primeira sobre os resíduos da segunda e interprete os resultados.
+
+```{r}
 reg6 = lm(res_sal_com_educ~res_sal_edu_sem_sexo)
 summary(reg6)
 
 # O efeito estimado pela regressão particionada é igual ao efeito de educ no modelo original?
 coef(reg6)[2]; coef(reg3)[2]
-
 ```
+
+**Interpretação:** o resultado mostra que os efeitos estimados na primeira equação de salário controlando por sexo e educação são de fato isolados.
 
 ## Exercício 2
 
-```{r}
+a) Declare os dados como de série temporal e faça um grafico das variáveis Inv_real e PNB_real Crie um termo de tendência deterministica e faça um gráfico das variáveis Inv_real e PNB_real em relação à essa tendência.
+
+```{r, fig.width=9, fig.height=8}
 library(ggplot2)
 library(timeSeries)
 
-ggplot(investimento, aes(y=inv_real, x=ano))+geom_line()
-ggplot(investimento, aes(y=pnb_real, x=ano))+geom_line()
-
-# colocar os gráficos com tendência
-
+# declarando como variáveis temporais
 inv_real = ts(investimento$inv_real, start=1980, end = 1994)
 pnb_real = ts(investimento$pnb_real, start=1980, end = 1994)
 
+par(mfrow=c(2,1))
 plot.ts(inv_real)
 plot.ts(pnb_real)
-
-tend_inv = decompose(inv_real)  # corrigir
-?decompose
-
-
+par(mfrow=c(1,1))
 ```
 
 
+b) Crie um termo de tendência deterministica e faça um gráfico das variáveis Inv_real e PNB_real em relação à essa tendência.
 
  
+```{r questaob, message=FALSE, warning=FALSE, fig.width=9, fig.height=6}
+investimento$tend = seq_along(inv_real)
+investimento$ano %<>% as.Date
+#Plotando um pouco mais elegante com ggplot2
+g1 = ggplot(investimento, aes(x=ano))+geom_line(aes(y=scale(inv_real)), color = "blue", lwd=1)+geom_line(aes(y=scale(tend), color="red"))+theme(legend.position = 'none')
+g2 = ggplot(investimento, aes(x=ano))+geom_line(aes(y=scale(pnb_real)), color = "darkgreen", lwd=1)+geom_line(aes(y=scale(tend), color="red"))+theme(legend.position = 'none')
+multiplot(g1,g2, cols=1)
+```
+
+c) Estime equações de tendência para o inv_real e para o pnb_real e depois um modelo do inv_real sobre o pnb_real somente e incluindo um termo de tendência e compare os resultados.
+
+```{r questaoc, message=FALSE, warning=FALSE}
+reg1 = lm(inv_real~tend, data=investimento)
+summary(reg1)
+
+reg2 = lm(pnb_real~tend, data=investimento)
+summary(reg2)
+
+reg3 = lm(inv_real~pnb_real, data=investimento)
+summary(reg3)
+
+reg4 = lm(inv_real~tend+pnb_real, data=investimento)
+summary(reg4)
+```
 
 
+d) Compare também o modelo de regressão com todas as variáveis com e sem a tendência.
+
+```{r questaod, warning=FALSE, message=FALSE}
+reg1 = lm(inv_real~pnb_real+tx_juros+tx_infla, data=investimento)
+summary(reg1)
+
+reg2 = lm(inv_real~pnb_real+tx_juros+tx_infla+tend, data=investimento)
+summary(reg2)
+```
+
+e) Comprove o teorema de **Frisch-Waugh-Lovell.** Questão a responder: será que é necessário extrair a tendência das variáveis antes de utilizá-las em um modelo de regressão?
+
+```{r questaoe, message=FALSE, warning=FALSE}
+reg1 = lm(inv_real~tend, data = investimento)
+e1 = residuals(reg1)
+
+reg2 = lm(pnb_real~tend, data=investimento)
+e2 = residuals(reg2)
+
+reg3 = lm(e1~e2)
+summary(reg3)
+
+reg4 = lm(e1~0+e2)
+summary(reg4)
+
+reg5 = lm(inv_real~pnb_real+tend, data=investimento)
+summary(reg5)
 
 
+```
 
 
 
