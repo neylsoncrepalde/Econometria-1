@@ -4,9 +4,11 @@ author: "Neylson Crepalde"
 output: 
   html_notebook:
     highlight: tango
+editor_options: 
+  chunk_output_type: inline
 ---
 
-```{r setup, include=F}
+```{r setup, message=FALSE, warning=FALSE}
 setwd('~/Documentos/Neylson Crepalde/Doutorado/Econometria1/aula_pratica3')
 library(foreign)
 library(timeSeries)
@@ -17,7 +19,7 @@ emprego = read.dta("Emprego.dta")
 investimento$ano %<>% as.ts
 investimento$tend <- seq_along(investimento$ano)
 
-names(investimento)
+names(investimento) #nomes das variáveis
 ```
 
 ```{r calculos, message=FALSE, warning=FALSE}
@@ -65,17 +67,20 @@ r = matrix(data=c(1,0,0,0,0,-1,0,0,0,0,0,1,0,0,0,0,-1,0,0,0,0,0,1,0,0,0,0,-1,0,0
 r
 
 # Programar os x1_1 x1_2 com for loop...
+#gen x1_1=cons if ano<=1953
+#gen x2_1=tend if ano<=1953
+#gen x3_1=def_pnb if ano<=1953
+#gen x4_1=pnb if ano<=1953
+#gen x5_1=f_arm if ano<=1953
+
+
 
 banco1 = emprego[emprego$ano<=1953,]
 banco2 = emprego[emprego$ano>1953,]
 zeros = matrix(0, ncol=9, nrow=9) %>% as.data.frame
 names(zeros) = names(emprego)
 banco1 = rbind(banco1, zeros)
-
-dim(banco1)
-
 banco2 = rbind(zeros[1:7,], banco2)
-
 dim(emprego)
 
 dim(banco1)
@@ -83,12 +88,50 @@ dim(banco2)
 banco = cbind(banco1, banco2)
 
 Y = emprego$emp_tot
+names(banco1)
+X = cbind(banco1$cons, banco1$tend, banco1$def_pnb, banco1$pnb, banco1$f_arm) %>%
+  as.matrix
+X
+
+b = solve(t(X)%*%X) %*% (t(X)%*%Y)
+b
+
+e = Y - X%*%b
+s2 = (t(e)%*%e)/6
+s2
+
+rb = r %*% b #não rodou
+
+#matrix inversa=inv(s2*r*inv(x'*x)*r')
+inversa = solve(drop(s2) * r %*% solve(t(X)%*%X) %*% t(r))
 
 #X = model.matrix(emp_tot~0+) #... Continua no próximo episódio...
+```
 
 
+```{r, message=FALSE, warning=FALSE}
+#Usando a soma dos quadrados do modelo restrito e não restrito
+reg1 <- lm(emp_tot~tend+def_pnb+pnb+f_arm, data=emprego)
+print(anova(reg1), digits=10)
+
+reg2 <- lm(emp_tot~tend+def_pnb+pnb+f_arm, data=emprego[emprego$ano<=1953,])
+print(anova(reg2), digits=10)
+
+reg3 <- lm(emp_tot~tend+def_pnb+pnb+f_arm, data=emprego[emprego$ano>1953,])
+print(anova(reg3),digits=10)
+```
+
+$$F = \frac{SQReg/SQT}{SQT/SQT - SQReg/SQT} * \frac{n-k}{k-1}$$
+
+
+
+```{r}
+((4.89871713-(.345067553+.801560471))/5)/((.345067553+.801560471)/6)
 
 ```
+
+**Obs: valor do F tabelado para (5,6) = 4,39.**
+
 
 b) As inclinações são as mesmas e os interceptos são diferentes para EA e ENA;
 
@@ -112,8 +155,7 @@ emprego2 = cbind(emprego2, cons_agri, cons_nagri)
 View(emprego2)
 
 # COntinua
-# Talvez seja melhor programar as matrizes de um jeito mais eficiente...
-
+# Talvez seja melhor programar as matrizes de um outro jeito...
 
 ```
 
