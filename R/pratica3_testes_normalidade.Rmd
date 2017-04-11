@@ -9,7 +9,7 @@ editor_options:
   chunk_output_type: inline
 ---
 
-```{r setup}
+```{r setup, message=FALSE, warning=FALSE}
 library(foreign)
 library(magrittr)
 library(normtest)

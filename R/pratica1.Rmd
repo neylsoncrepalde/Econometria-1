@@ -4,6 +4,8 @@ author: "Neylson Crepalde"
 output: 
   html_notebook:
     highlight: tango
+editor_options: 
+  chunk_output_type: inline
 ---
 
 Trabalhando com a base de dados `wages_935.dta`:

@@ -6,6 +6,8 @@ output:
     highlight: tango
   pdf_document:
     highlight: tango
+editor_options: 
+  chunk_output_type: inline
 ---
 
 ## Exercício 1
