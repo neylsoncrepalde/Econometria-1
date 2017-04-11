@@ -1,14 +1,13 @@
 ---
 title: "Prática 4 - Restricted Least Squares"
 author: "Neylson Crepalde"
-output: html_notebook
-editor_options: 
-  chunk_output_type: inline
+output: 
+  html_notebook:
+    highlight: tango
 ---
 
 ```{r setup, include=F}
 setwd('~/Documentos/Neylson Crepalde/Doutorado/Econometria1/aula_pratica3')
-library(lrmest)
 library(foreign)
 library(timeSeries)
 library(magrittr)
@@ -28,32 +27,27 @@ Y = investimento$inv_real %>% as.matrix
 
 b = solve(t(X)%*%X) %*% (t(X)%*%Y)
 
-s2 = (t(Y - X%*%b) %*% (Y - X%*%b)) / 10
+s2 = (t(Y - X%*%b) %*% (Y - X%*%b)) / 10  #denominador = n-k
 
-s2 %<>% as.matrix
+var = r %*% (drop(s2) * solve(t(X)%*%X)) %*% t(r)
 
-var = r %*% (s2 %*% solve(t(X)%*%X)) * t(r) #Deu ruim
-#r*(s2*inv(x'*x))*r'  escrito no Stata
-
-sqrt(1.805e-06)
+sqrt(var)
 sqrt(0.0000018052)
 
 rb = r%*%b
 rb
 
--.00243313/.0013435
+drop(rb)/sqrt(var); -.00243313/.0013435
 
 # Verificando
 reg = lm(inv_real~tend+pnb_real+tx_juros+tx_infla, data=investimento)
 vcov(reg)
-
-# ESTUDAR!!!!!!!!!!!
 ```
 
 ## Exercício 2
 ### Dados em Emprego
 
-**Modelo:** emprego total, agrícola , não a*grícola =f(PNB, deflator do PNB, tamanho das forças armadas).
+**Modelo:** emprego total, agrícola , não agrícola =f(PNB, deflator do PNB, tamanho das forças armadas).
 
 Queremos saber se a relação entre o emprego (total, agrícola e não agrícola) e as outras variáveis apresentou mudanças após a guerra da Coréia, que terminou em 1953.
 
